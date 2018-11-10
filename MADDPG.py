@@ -109,7 +109,6 @@ class MADDPG:
                 non_final_next_actions.view(-1,
                                             self.n_agents * self.n_actions)
             ).squeeze()
-            # scale_reward: to scale reward in Q functions
 
             target_Q = (target_Q.unsqueeze(1) * self.GAMMA) + (
                     reward_batch[:, agent].unsqueeze(1))
