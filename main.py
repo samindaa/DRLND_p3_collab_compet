@@ -92,6 +92,7 @@ for i_episode in range(num_episode):
         print('training now begins...')
 
     if maddpg.episode_done > maddpg.episodes_before_train and i_episode % save_interval == 0:
+        print()
         save_dict_list = []
         for i in range(num_agents):
             save_dict = {'actor_params': maddpg.actors[i].state_dict(),
