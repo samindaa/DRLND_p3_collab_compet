@@ -39,12 +39,12 @@ class MADDPG:
         self.use_cuda = torch.cuda.is_available()
         self.episodes_before_train = episodes_before_train
 
-        self.GAMMA = 0.95
-        self.tau = 0.01
+        self.GAMMA = 0.99
+        self.tau = 1e-3
 
         self.var = [1.0 for i in range(n_agents)]
         self.critic_optimizer = [Adam(x.parameters(),
-                                      lr=0.001) for x in self.critics]
+                                      lr=0.001, weight_decay=0.0001) for x in self.critics]
         self.actor_optimizer = [Adam(x.parameters(),
                                      lr=0.0001) for x in self.actors]
 
@@ -63,7 +63,7 @@ class MADDPG:
 
     def update_policy(self):
         # do not train until exploration is enough
-        if self.episode_done <= self.episodes_before_train:
+        if self.episode_done <= self.episodes_before_train or len(self.memory) < self.batch_size:
             return None, None
 
         ByteTensor = torch.cuda.ByteTensor if self.use_cuda else torch.ByteTensor
