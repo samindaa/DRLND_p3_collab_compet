@@ -12,7 +12,7 @@ reward_record = []
 np.random.seed(1234)
 torch.manual_seed(1234)
 
-env = UnityEnvironment(file_name="/Users/saminda/Udacity/DRLND/Sim/Tennis/Tennis.app")
+env = UnityEnvironment(file_name="/home/ubuntu/Tennis_Linux_NoVis/Tennis.x86_64")
 
 # get the default brain
 brain_name = env.brain_names[0]
@@ -39,7 +39,7 @@ batch_size = 1000
 num_episode = 20000
 max_steps = 1000
 episodes_before_train = 100
-save_interval = 10
+save_interval = 100
 
 scores_deque = deque(maxlen=100)
 scores_list = []
