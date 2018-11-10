@@ -44,11 +44,13 @@ save_interval = 10
 scores_deque = deque(maxlen=100)
 scores_list = []
 avg_list = []
+tot_list = []
 
 maddpg = MADDPG(num_agents, state_size, action_size, batch_size, capacity, episodes_before_train)
 
 FloatTensor = torch.cuda.FloatTensor if maddpg.use_cuda else torch.FloatTensor
 for i_episode in range(num_episode):
+    maddpg.reset()
     env_info = env.reset(train_mode=True)[brain_name]
     obs = env_info.vector_observations  # get the current state (for each agent)
     # obs = np.stack(obs)
@@ -85,11 +87,8 @@ for i_episode in range(num_episode):
     maddpg.episode_done += 1
     reward_record.append(total_reward)
 
-    if maddpg.episode_done < maddpg.episodes_before_train:
-        print('Episode: %d, reward = %f' % (i_episode, total_reward))
-
     if maddpg.episode_done == maddpg.episodes_before_train:
-        print('training now begins...')
+        print('\nTraining begins now...')
 
     if maddpg.episode_done > maddpg.episodes_before_train and i_episode % save_interval == 0:
         print()
@@ -102,20 +101,21 @@ for i_episode in range(num_episode):
             save_dict_list.append(save_dict)
         torch.save(save_dict_list, 'model-{}.bin'.format(maddpg.__class__.__name__))
 
-    if maddpg.episode_done > maddpg.episodes_before_train:
-        score = np.max(rr)
-        scores_list.append(score)
-        scores_deque.append(score)
+    score = np.max(rr)
+    scores_list.append(score)
+    scores_deque.append(score)
 
-        avg = np.average(scores_deque)
-        avg_list.append(avg)
+    avg = np.average(scores_deque)
+    avg_list.append(avg)
+    tot_list.append(total_reward)
 
-        print(f"\rEpisode: {i_episode:4d}   Episode Score: {score:.2f}   Average Score: {avg:.4f}", end="")
+    print(f"\rEpisode: {i_episode:4d}  Average Score: {avg:.4f}", end="")
 
 fig = plt.figure()
 ax = fig.add_subplot(111)
 plt.plot(np.arange(1, len(scores_list) + 1), scores_list)
 plt.plot(np.arange(1, len(avg_list) + 1), avg_list)
+plt.plot(np.arange(1, len(tot_list) + 1), tot_list)
 plt.ylabel('Score')
 plt.xlabel('Episode #')
 plt.savefig('scores.png')

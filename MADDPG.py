@@ -7,6 +7,7 @@ from torch.optim import Adam
 
 from memory import ReplayMemory, Experience
 from model import Critic, Actor
+from noise import OrnsteinUhlenbeckActionNoise
 
 
 def soft_update(target, source, t):
@@ -41,7 +42,11 @@ class MADDPG:
 
         self.GAMMA = 0.99
         self.tau = 1e-3
+        self.stddev = 0.2
 
+        self.action_noise = [OrnsteinUhlenbeckActionNoise(mu=np.zeros(self.n_actions),
+                                                          sigma=float(self.stddev) * np.ones(self.n_actions))
+                             for i in range(n_agents)]
         self.var = [1.0 for i in range(n_agents)]
         self.critic_optimizer = [Adam(x.parameters(),
                                       lr=0.001, weight_decay=0.0001) for x in self.critics]
@@ -147,8 +152,10 @@ class MADDPG:
             sb = state_batch[i, :].detach()
             act = self.actors[i](sb.unsqueeze(0)).squeeze()
 
-            act += torch.from_numpy(
-                np.random.randn(2) * self.var[i]).type(FloatTensor)
+            #act += torch.from_numpy(
+            #    np.random.randn(2) * self.var[i]).type(FloatTensor)
+
+            act += torch.from_numpy(self.action_noise[i]()).type(FloatTensor)
 
             if self.episode_done > self.episodes_before_train and \
                     self.var[i] > 0.05:
@@ -159,3 +166,7 @@ class MADDPG:
         self.steps_done += 1
 
         return actions
+
+    def reset(self):
+        for i in range(self.n_agents):
+            self.action_noise[i].reset()
