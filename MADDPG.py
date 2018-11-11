@@ -125,6 +125,7 @@ class MADDPG:
             actor_loss = -self.critics[agent](whole_state, whole_action)
             actor_loss = actor_loss.mean()
             actor_loss.backward()
+            torch.nn.utils.clip_grad_norm_(self.actors[agent].parameters(), 1)
             self.actor_optimizer[agent].step()
             c_loss.append(loss_Q)
             a_loss.append(actor_loss)
