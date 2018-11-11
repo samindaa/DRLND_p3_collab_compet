@@ -97,7 +97,7 @@ for i_episode in range(num_episode):
 
     print(f"\rEpisode: {i_episode:4d}  Average Score: {avg:.4f}", end="")
 
-    if i_episode % save_interval == 0:
+    if i_episode % save_interval == 0 and i_episode > 0:
         print()
         save_dict_list = []
         for i in range(num_agents):
