@@ -38,7 +38,6 @@ batch_size = 1000
 
 num_episode = 3000
 max_steps = 1000
-episodes_before_train = 100
 save_interval = 100
 
 scores_deque = deque(maxlen=100)
@@ -46,7 +45,7 @@ scores_list = []
 avg_list = []
 tot_list = []
 
-maddpg = MADDPG(num_agents, state_size, action_size, batch_size, capacity, episodes_before_train)
+maddpg = MADDPG(num_agents, state_size, action_size, batch_size, capacity)
 
 FloatTensor = torch.cuda.FloatTensor if maddpg.use_cuda else torch.FloatTensor
 for i_episode in range(num_episode):
@@ -69,17 +68,16 @@ for i_episode in range(num_episode):
         reward = torch.FloatTensor(reward).type(FloatTensor)
         # obs_ = np.stack(obs_)
         obs_ = torch.from_numpy(obs_).float()
-        if t != max_steps - 1 or not np.any(done):
-            next_obs = obs_
-        else:
-            next_obs = None
-
+        next_obs = obs_
+        
         total_reward += reward.sum()
         rr += reward.cpu().numpy()
         maddpg.memory.push(obs.data, action, next_obs, reward)
         obs = next_obs
 
-        c_loss, a_loss = maddpg.update_policy()
+        if maddpg.steps_done % 100 == 0:
+            for _ in range(10):
+                c_loss, a_loss = maddpg.update_policy()
 
         if np.any(done):
             break
@@ -87,10 +85,7 @@ for i_episode in range(num_episode):
     maddpg.episode_done += 1
     reward_record.append(total_reward)
 
-    if maddpg.episode_done == maddpg.episodes_before_train:
-        print('\nTraining begins now...')
-
-    if maddpg.episode_done > maddpg.episodes_before_train and i_episode % save_interval == 0:
+    if i_episode % save_interval == 0:
         print()
         save_dict_list = []
         for i in range(num_agents):

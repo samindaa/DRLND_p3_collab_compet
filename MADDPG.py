@@ -24,8 +24,7 @@ def hard_update(target, source):
 
 
 class MADDPG:
-    def __init__(self, n_agents, dim_obs, dim_act, batch_size,
-                 capacity, episodes_before_train):
+    def __init__(self, n_agents, dim_obs, dim_act, batch_size, capacity):
         self.actors = [Actor(dim_obs, dim_act) for i in range(n_agents)]
         self.critics = [Critic(n_agents, dim_obs,
                                dim_act) for i in range(n_agents)]
@@ -38,20 +37,18 @@ class MADDPG:
         self.memory = ReplayMemory(capacity)
         self.batch_size = batch_size
         self.use_cuda = torch.cuda.is_available()
-        self.episodes_before_train = episodes_before_train
 
         self.GAMMA = 0.99
-        self.tau = 0.01
+        self.tau = 1e-3
         self.stddev = 0.2
 
         self.action_noise = [OrnsteinUhlenbeckActionNoise(mu=np.zeros(self.n_actions),
                                                           sigma=float(self.stddev) * np.ones(self.n_actions))
                              for i in range(n_agents)]
-        self.var = [self.stddev for i in range(n_agents)]
         self.critic_optimizer = [Adam(x.parameters(),
-                                      lr=0.001, weight_decay=0.0001) for x in self.critics]
+                                      lr=1e-3, weight_decay=0.0001) for x in self.critics]
         self.actor_optimizer = [Adam(x.parameters(),
-                                     lr=0.0001) for x in self.actors]
+                                     lr=2e-4) for x in self.actors]
 
         if self.use_cuda:
             for x in self.actors:
@@ -68,7 +65,7 @@ class MADDPG:
 
     def update_policy(self):
         # do not train until exploration is enough
-        if self.episode_done <= self.episodes_before_train or len(self.memory) < self.batch_size:
+        if len(self.memory) < self.batch_size:
             return None, None
 
         ByteTensor = torch.cuda.ByteTensor if self.use_cuda else torch.ByteTensor
@@ -135,10 +132,10 @@ class MADDPG:
             c_loss.append(loss_Q)
             a_loss.append(actor_loss)
 
-        if self.steps_done % 100 == 0 and self.steps_done > 0:
-            for i in range(self.n_agents):
-                soft_update(self.critics_target[i], self.critics[i], self.tau)
-                soft_update(self.actors_target[i], self.actors[i], self.tau)
+        #if self.steps_done % 100 == 0 and self.steps_done > 0:
+        for i in range(self.n_agents):
+            soft_update(self.critics_target[i], self.critics[i], self.tau)
+            soft_update(self.actors_target[i], self.actors[i], self.tau)
 
         return c_loss, a_loss
 
@@ -151,17 +148,8 @@ class MADDPG:
         for i in range(self.n_agents):
             sb = state_batch[i, :].detach()
             act = self.actors[i](sb.unsqueeze(0)).squeeze()
-
-            #act += torch.from_numpy(
-            #    np.random.randn(2) * self.var[i]).type(FloatTensor)
-
             act += torch.from_numpy(self.action_noise[i]()).type(FloatTensor)
-
-            if self.episode_done > self.episodes_before_train and \
-                    self.var[i] > 0.05:
-                self.var[i] *= 0.998
             act = torch.clamp(act, -1.0, 1.0)
-
             actions[i, :] = act
         self.steps_done += 1
 
