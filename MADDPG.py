@@ -152,10 +152,10 @@ class MADDPG:
             sb = state_batch[i, :].detach()
             act = self.actors[i](sb.unsqueeze(0)).squeeze()
 
-            act += torch.from_numpy(
-                np.random.randn(2) * self.var[i]).type(FloatTensor)
+            #act += torch.from_numpy(
+            #    np.random.randn(2) * self.var[i]).type(FloatTensor)
 
-            #act += torch.from_numpy(self.action_noise[i]()).type(FloatTensor)
+            act += torch.from_numpy(self.action_noise[i]()).type(FloatTensor)
 
             if self.episode_done > self.episodes_before_train and \
                     self.var[i] > 0.05:
