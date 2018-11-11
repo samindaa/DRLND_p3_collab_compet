@@ -43,7 +43,8 @@ class MADDPG:
         self.stddev = 0.2
 
         self.action_noise = [OrnsteinUhlenbeckActionNoise(mu=np.zeros(self.n_actions),
-                                                          sigma=float(self.stddev) * np.ones(self.n_actions))
+                                                          sigma=float(self.stddev) * np.ones(self.n_actions),
+                                                          dt=0.2)
                              for i in range(n_agents)]
         self.critic_optimizer = [Adam(x.parameters(),
                                       lr=1e-3, weight_decay=0.0001) for x in self.critics]
@@ -68,7 +69,7 @@ class MADDPG:
         if len(self.memory) < self.batch_size:
             return None, None
 
-        ByteTensor = torch.cuda.ByteTensor if self.use_cuda else torch.ByteTensor
+        #ByteTensor = torch.cuda.ByteTensor if self.use_cuda else torch.ByteTensor
         FloatTensor = torch.cuda.FloatTensor if self.use_cuda else torch.FloatTensor
 
         c_loss = []
@@ -112,6 +113,7 @@ class MADDPG:
 
             loss_Q = nn.MSELoss()(current_Q, target_Q.detach())
             loss_Q.backward()
+            torch.nn.utils.clip_grad_norm_(self.critics[agent].parameters(), 1)
             self.critic_optimizer[agent].step()
 
             self.actor_optimizer[agent].zero_grad()

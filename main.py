@@ -9,11 +9,11 @@ from MADDPG import MADDPG
 
 reward_record = []
 
-np.random.seed(1234)
-torch.manual_seed(1234)
+np.random.seed(2)
+torch.manual_seed(2)
 
-env = UnityEnvironment(file_name="/home/ubuntu/Tennis_Linux_NoVis/Tennis.x86_64")
-# env = UnityEnvironment(file_name="/Users/saminda/Udacity/DRLND/Sim/Tennis/Tennis.app")
+# env = UnityEnvironment(file_name="/home/ubuntu/Tennis_Linux_NoVis/Tennis.x86_64")
+env = UnityEnvironment(file_name="/Users/saminda/Udacity/DRLND/Sim/Tennis/Tennis.app")
 
 # get the default brain
 brain_name = env.brain_names[0]
@@ -35,7 +35,7 @@ states = env_info.vector_observations
 state_size = states.shape[1]
 
 capacity = 1000000
-batch_size = 1000
+batch_size = 1024
 
 num_episode = 3000
 max_steps = 1000
@@ -61,7 +61,9 @@ for i_episode in range(num_episode):
         obs = obs.type(FloatTensor)
         action = maddpg.select_action(obs).data.cpu()
         env_info = env.step(action.numpy())[brain_name]
-        next_obs, reward, done, = env_info.vector_observations, env_info.rewards, env_info.local_done
+        next_obs = env_info.vector_observations
+        reward = env_info.rewards
+        done = env_info.local_done
 
         if np.any(done):
             episode_done = True
