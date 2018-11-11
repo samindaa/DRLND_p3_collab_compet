@@ -47,9 +47,9 @@ class MADDPG:
                                                           dt=0.2)
                              for i in range(n_agents)]
         self.critic_optimizer = [Adam(x.parameters(),
-                                      lr=1e-2, weight_decay=0.0001) for x in self.critics]
+                                      lr=1e-3, weight_decay=0.0001) for x in self.critics]
         self.actor_optimizer = [Adam(x.parameters(),
-                                     lr=2e-3) for x in self.actors]
+                                     lr=2e-4) for x in self.actors]
 
         if self.use_cuda:
             for x in self.actors:
@@ -113,7 +113,7 @@ class MADDPG:
 
             loss_Q = nn.MSELoss()(current_Q, target_Q.detach())
             loss_Q.backward()
-            torch.nn.utils.clip_grad_norm_(self.critics[agent].parameters(), 1)
+            torch.nn.utils.clip_grad_norm_(self.critics[agent].parameters(), 5)
             self.critic_optimizer[agent].step()
 
             self.actor_optimizer[agent].zero_grad()
@@ -125,7 +125,7 @@ class MADDPG:
             actor_loss = -self.critics[agent](whole_state, whole_action)
             actor_loss = actor_loss.mean()
             actor_loss.backward()
-            torch.nn.utils.clip_grad_norm_(self.actors[agent].parameters(), 1)
+            torch.nn.utils.clip_grad_norm_(self.actors[agent].parameters(), 5)
             self.actor_optimizer[agent].step()
             c_loss.append(loss_Q)
             a_loss.append(actor_loss)
