@@ -49,9 +49,9 @@ class MADDPG:
                              for i in range(n_agents)]
         self.var = [1.0 for i in range(n_agents)]
         self.critic_optimizer = [Adam(x.parameters(),
-                                      lr=0.001, weight_decay=0.0001) for x in self.critics]
+                                      lr=0.0002, weight_decay=0.0001) for x in self.critics]
         self.actor_optimizer = [Adam(x.parameters(),
-                                     lr=0.0001) for x in self.actors]
+                                     lr=0.001) for x in self.actors]
 
         if self.use_cuda:
             for x in self.actors:
@@ -135,10 +135,10 @@ class MADDPG:
             c_loss.append(loss_Q)
             a_loss.append(actor_loss)
 
-        if self.steps_done % 100 == 0 and self.steps_done > 0:
-            for i in range(self.n_agents):
-                soft_update(self.critics_target[i], self.critics[i], self.tau)
-                soft_update(self.actors_target[i], self.actors[i], self.tau)
+        #if self.steps_done % 100 == 0 and self.steps_done > 0:
+        for i in range(self.n_agents):
+            soft_update(self.critics_target[i], self.critics[i], self.tau)
+            soft_update(self.actors_target[i], self.actors[i], self.tau)
 
         return c_loss, a_loss
 
