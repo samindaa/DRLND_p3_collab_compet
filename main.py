@@ -77,9 +77,9 @@ for i_episode in range(num_episode):
         maddpg.memory.push(obs, action, next_obs, reward, done)
         obs = next_obs
 
-        if maddpg.steps_done % 100 == 0:
+        #if maddpg.steps_done % 100 == 0:
             #for _ in range(10):
-            c_loss, a_loss = maddpg.update_policy()
+        c_loss, a_loss = maddpg.update_policy()
 
         if episode_done:
             break
