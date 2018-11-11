@@ -12,7 +12,8 @@ reward_record = []
 np.random.seed(1234)
 torch.manual_seed(1234)
 
-env = UnityEnvironment(file_name="/home/ubuntu/Tennis_Linux_NoVis/Tennis.x86_64")
+#env = UnityEnvironment(file_name="/home/ubuntu/Tennis_Linux_NoVis/Tennis.x86_64")
+env = UnityEnvironment(file_name="/Users/saminda/Udacity/DRLND/Sim/Tennis/Tennis.app")
 
 # get the default brain
 brain_name = env.brain_names[0]
@@ -52,34 +53,33 @@ for i_episode in range(num_episode):
     maddpg.reset()
     env_info = env.reset(train_mode=True)[brain_name]
     obs = env_info.vector_observations  # get the current state (for each agent)
-    # obs = np.stack(obs)
-    if isinstance(obs, np.ndarray):
-        obs = torch.from_numpy(obs).float()
+    obs = torch.from_numpy(obs).float()
     total_reward = 0.0
     rr = np.zeros((num_agents,))
+    episode_done = False
     for t in range(max_steps):
-
         obs = obs.type(FloatTensor)
         action = maddpg.select_action(obs).data.cpu()
         env_info = env.step(action.numpy())[brain_name]
+        next_obs, reward, done, = env_info.vector_observations, env_info.rewards, env_info.local_done
 
-        obs_, reward, done, = env_info.vector_observations, env_info.rewards, env_info.local_done
+        if np.any(done):
+            episode_done = True
 
         reward = torch.FloatTensor(reward).type(FloatTensor)
-        # obs_ = np.stack(obs_)
-        obs_ = torch.from_numpy(obs_).float()
-        next_obs = obs_
-        
+        done = torch.FloatTensor(done).type(FloatTensor)
+        next_obs = torch.from_numpy(next_obs).float()
+
         total_reward += reward.sum()
         rr += reward.cpu().numpy()
-        maddpg.memory.push(obs.data, action, next_obs, reward)
+        maddpg.memory.push(obs, action, next_obs, reward, done)
         obs = next_obs
 
         if maddpg.steps_done % 100 == 0:
             for _ in range(10):
                 c_loss, a_loss = maddpg.update_policy()
 
-        if np.any(done):
+        if episode_done:
             break
 
     maddpg.episode_done += 1
