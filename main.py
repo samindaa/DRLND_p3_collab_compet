@@ -12,8 +12,8 @@ reward_record = []
 np.random.seed(2)
 torch.manual_seed(2)
 
-# env = UnityEnvironment(file_name="/home/ubuntu/Tennis_Linux_NoVis/Tennis.x86_64")
-env = UnityEnvironment(file_name="/Users/saminda/Udacity/DRLND/Sim/Tennis/Tennis.app")
+env = UnityEnvironment(file_name="/home/ubuntu/Tennis_Linux_NoVis/Tennis.x86_64")
+# env = UnityEnvironment(file_name="/Users/saminda/Udacity/DRLND/Sim/Tennis/Tennis.app")
 
 # get the default brain
 brain_name = env.brain_names[0]
@@ -87,6 +87,16 @@ for i_episode in range(num_episode):
     maddpg.episode_done += 1
     reward_record.append(total_reward)
 
+    score = np.max(rr)
+    scores_list.append(score)
+    scores_deque.append(score)
+
+    avg = np.average(scores_deque)
+    avg_list.append(avg)
+    tot_list.append(total_reward)
+
+    print(f"\rEpisode: {i_episode:4d}  Average Score: {avg:.4f}", end="")
+
     if i_episode % save_interval == 0:
         print()
         save_dict_list = []
@@ -98,15 +108,6 @@ for i_episode in range(num_episode):
             save_dict_list.append(save_dict)
         torch.save(save_dict_list, 'model-{}.bin'.format(maddpg.__class__.__name__))
 
-    score = np.max(rr)
-    scores_list.append(score)
-    scores_deque.append(score)
-
-    avg = np.average(scores_deque)
-    avg_list.append(avg)
-    tot_list.append(total_reward)
-
-    print(f"\rEpisode: {i_episode:4d}  Average Score: {avg:.4f}", end="")
 
 fig = plt.figure()
 ax = fig.add_subplot(111)
