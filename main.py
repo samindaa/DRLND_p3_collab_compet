@@ -78,8 +78,8 @@ for i_episode in range(num_episode):
         obs = next_obs
 
         if maddpg.steps_done % 100 == 0:
-            for _ in range(10):
-                c_loss, a_loss = maddpg.update_policy()
+            #for _ in range(10):
+            c_loss, a_loss = maddpg.update_policy()
 
         if episode_done:
             break
