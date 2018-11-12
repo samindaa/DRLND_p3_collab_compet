@@ -46,7 +46,7 @@ def save_model(filename):
     torch.save(agent.critic_local.state_dict(), '{}_critic.pth'.format(filename))
 
 
-def ddpg(n_episodes=3200, print_every=100, save_every=100):
+def ddpg(n_episodes=2000, print_every=100, save_every=100):
     avg_solved = 0
     scores_deque = deque(maxlen=100)
     scores_global = []

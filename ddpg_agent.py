@@ -15,11 +15,11 @@ GAMMA = 0.99            # discount factor
 TAU = 1e-3              # for soft update of target parameters
 LR_ACTOR = 1e-4         # learning rate of the actor
 LR_CRITIC = 1e-3        # learning rate of the critic
-WEIGHT_DECAY = 0   # L2 weight decay
+WEIGHT_DECAY = 0        # L2 weight decay
 UPDATE_EVERY = 20
 UPDATES_PER_STEP = 10
 
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 class Agent():
     """Interacts with and learns from the environment."""
@@ -50,10 +50,7 @@ class Agent():
         self.critic_optimizer = optim.Adam(self.critic_local.parameters(), lr=LR_CRITIC, weight_decay=WEIGHT_DECAY)
 
         # Noise process
-        self.noise = OUNoise(action_size, random_seed, mu=0, theta=0.15, sigma=0.2)
-
-        # Noise process
-        self.noise = [OUNoise(action_size, random_seed) for i in range(self.num_agents)]
+        self.noise = [OUNoise(action_size, random_seed, sigma=0.1) for i in range(self.num_agents)]
 
         # Replay memory
         self.memory = ReplayBuffer(action_size, BUFFER_SIZE, BATCH_SIZE, random_seed)
@@ -80,7 +77,6 @@ class Agent():
 
     def act(self, state, add_noise=True):
         """Returns actions for given state as per current policy."""
-        #state = torch.from_numpy(state).float().unsqueeze(0).to(device)
         state = torch.from_numpy(state).float().to(device)
 
         self.actor_local.eval()
