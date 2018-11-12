@@ -39,7 +39,7 @@ state_size = states.shape[1]
 capacity = 1000000
 batch_size = 1024
 
-num_episode = 5000
+num_episode = 3000
 save_interval = 100
 
 scores_deque = deque(maxlen=100)
@@ -117,7 +117,8 @@ for i_episode in range(num_episode):
             avg_solved = avg
             print('\nSaving: {:d} Average Score: {:.2f}'.format(i_episode, avg))
             maddpg.save('model-solution')
-            if avg > 0.8:
+            if avg_solved > 0.8:
+                print('done')
                 break
 
     # if  i_episode % 100 and len(pos_examples) > 16:

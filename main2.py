@@ -87,6 +87,9 @@ def ddpg(n_episodes=3200, print_every=100, save_every=100):
                 avg_solved = score_average
                 print('\nSaving: {:d} Average Score: {:.2f}'.format(i_episode, avg_solved))
                 save_model('solution')
+                if avg_solved > 0.9:
+                    print('done')
+                    break
 
     return scores_global, avg_global
 
