@@ -37,10 +37,9 @@ print('There are {} agents. Each observes a state with length: {}'.format(states
 agent = Agent(state_size=state_size, action_size=action_size, num_agents=num_agents, random_seed=2)
 
 
-def save_model():
-    print("Model Save...")
-    torch.save(agent.actor_local.state_dict(), 'checkpoint_actor.pth')
-    torch.save(agent.critic_local.state_dict(), 'checkpoint_critic.pth')
+def save_model(filename):
+    torch.save(agent.actor_local.state_dict(), '{}_actor.pth'.format(filename))
+    torch.save(agent.critic_local.state_dict(), '{}_critic.pth'.format(filename))
 
 
 def ddpg(n_episodes=3200, print_every=10, save_every=100):
@@ -75,7 +74,7 @@ def ddpg(n_episodes=3200, print_every=10, save_every=100):
         avg_global.append(score_average)
 
         if i_episode % save_every == 0:
-            save_model()
+            save_model('checkpoint')
 
         if i_episode % print_every == 0:
             print('\rEpisode {}, Average Score: {:.2f}, Max: {:.2f}, Min: {:.2f}' \
@@ -87,7 +86,7 @@ def ddpg(n_episodes=3200, print_every=10, save_every=100):
             if score_average > avg_solved:
                 avg_solved = score_average
                 print('\nSaving: {:d} Average Score: {:.2f}'.format(i_episode, avg_solved))
-                save_model()
+                save_model('solution')
 
     return scores_global, avg_global
 
