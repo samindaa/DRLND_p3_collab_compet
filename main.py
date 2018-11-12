@@ -38,7 +38,7 @@ state_size = states.shape[1]
 capacity = 1000000
 batch_size = 1024
 
-num_episode = 3000
+num_episode = 6000
 max_steps = 1000
 save_interval = 100
 
@@ -48,8 +48,9 @@ avg_list = []
 tot_list = []
 
 which_agent = 0
-pos_tuples = 0
 avg_solved = 0
+
+pos_examples = ReplayMemory(capacity/2)
 
 maddpg = MADDPG(num_agents, state_size, action_size, batch_size, capacity)
 
@@ -77,7 +78,7 @@ for i_episode in range(num_episode):
         next_obs = torch.from_numpy(next_obs).float()
 
         if reward.sum() > 0:
-            pos_tuples += 1
+            pos_examples.push(obs, action, next_obs, reward, done)
 
         total_reward += reward.sum()
         rr += reward.cpu().numpy()
@@ -104,7 +105,7 @@ for i_episode in range(num_episode):
     avg_list.append(avg)
     tot_list.append(total_reward)
 
-    print(f"\rEpisode: {i_episode:4d}  Average Score: {avg:.4f} Pos tuples: {pos_tuples}", end="")
+    print(f"\rEpisode: {i_episode:4d}  Average Score: {avg:.4f} Pos: {len(pos_examples)}", end="")
 
     if i_episode % save_interval == 0 and i_episode > 0:
         print()
@@ -117,6 +118,11 @@ for i_episode in range(num_episode):
             avg_solved = avg
             print('\nSaving: {:d} Average Score: {:.2f}'.format(i_episode, avg))
             maddpg.save('model-solution')
+
+    if  i_episode % 100 and len(pos_examples) > 16:
+        samples = pos_examples.sample(16)
+        for sample in samples:
+            maddpg.memory.push(sample.states, sample.actions, sample.next_states, sample.rewards, sample.dones)
 
 
 fig = plt.figure()
