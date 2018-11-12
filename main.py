@@ -47,7 +47,6 @@ scores_list = []
 avg_list = []
 tot_list = []
 
-which_agent = 0
 avg_solved = 0
 
 pos_examples = ReplayMemory(int(capacity / 2))
@@ -85,10 +84,9 @@ for i_episode in range(num_episode):
         obs = next_obs
 
         if maddpg.steps_done % 20 == 0:
-            agent = which_agent % maddpg.n_agents
-            which_agent += 1
             for _ in range(10):
-                c_loss, a_loss = maddpg.update_policy(agent)
+                for agent in range(maddpg.n_agents):
+                    maddpg.update_policy(agent)
 
         if episode_done:
             break
