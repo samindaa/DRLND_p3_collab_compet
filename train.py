@@ -4,14 +4,18 @@ from itertools import count
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
+import argparse
 from unityagents import UnityEnvironment
 
 from ddpg_agent import Agent
 
-# %matplotlib inline
+parser = argparse.ArgumentParser()
+parser.add_argument('--file_name', default='/Users/saminda/Udacity/DRLND/Sim/Tennis/Tennis.app',
+                    help='Unity environment')
+args = parser.parse_args()
 
-env = UnityEnvironment(file_name="/home/ubuntu/Tennis_Linux_NoVis/Tennis.x86_64")
-# env = UnityEnvironment(file_name="/Users/saminda/Udacity/DRLND/Sim/Tennis/Tennis.app")
+print('file_name:', args.file_name)
+env = UnityEnvironment(file_name=args.file_name)
 
 # get the default brain
 brain_name = env.brain_names[0]

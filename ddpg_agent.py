@@ -1,14 +1,13 @@
-import numpy as np
 import random
-import copy
 from collections import namedtuple, deque
 
-from networks2 import Actor, Critic
-from noise2 import OUNoise
-
+import numpy as np
 import torch
 import torch.nn.functional as F
 import torch.optim as optim
+
+from networks import Actor, Critic
+from noise import OUNoise
 
 BUFFER_SIZE = int(1e6)  # replay buffer size
 BATCH_SIZE = 1024       # minibatch size
