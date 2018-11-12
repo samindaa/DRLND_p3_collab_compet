@@ -17,10 +17,6 @@ TAU = 1e-3              # for soft update of target parameters
 LR_ACTOR = 1e-4         # learning rate of the actor
 LR_CRITIC = 1e-3        # learning rate of the critic
 WEIGHT_DECAY = 0   # L2 weight decay
-EPSILON_MAX = 1.0
-EPSILON_MIN = 0.1
-EPSILON_DECAY = 0
-LEARN_START = 0
 UPDATE_EVERY = 20
 UPDATES_PER_STEP = 10
 
@@ -43,7 +39,6 @@ class Agent():
         self.action_size = action_size
         self.num_agents = num_agents
         self.seed = random.seed(random_seed)
-        self.epsilon = EPSILON_MAX
 
         # Actor Network (w/ Target Network)
         self.actor_local = Actor(state_size, action_size, random_seed).to(device)
@@ -75,15 +70,14 @@ class Agent():
         # Save experience / reward
         self.memory.add(state, action, reward, next_state, done, self.num_agents)
 
-        if len(self.memory) > LEARN_START:
-            # Learn every UPDATE_EVERY time steps.
-            self.t_step = (self.t_step + 1) % UPDATE_EVERY
-            if self.t_step == 0:
-                # Learn, if enough samples are available in memory
-                if len(self.memory) > BATCH_SIZE:
-                    for _ in range(UPDATES_PER_STEP):
-                        experiences = self.memory.sample()
-                        self.learn(experiences, GAMMA)
+        # Learn every UPDATE_EVERY time steps.
+        self.t_step = (self.t_step + 1) % UPDATE_EVERY
+        if self.t_step == 0:
+            # Learn, if enough samples are available in memory
+            if len(self.memory) > BATCH_SIZE:
+                for _ in range(UPDATES_PER_STEP):
+                    experiences = self.memory.sample()
+                    self.learn(experiences, GAMMA)
 
     def act(self, state, add_noise=True):
         """Returns actions for given state as per current policy."""
@@ -100,7 +94,7 @@ class Agent():
             for i in range(self.num_agents):
                 agent_action = action[i]
                 for j in agent_action:
-                    j += self.epsilon * self.noise[i].sample()
+                    j += self.noise[i].sample()
 
         return np.clip(action, -1, 1)
 
@@ -153,12 +147,6 @@ class Agent():
         # ----------------------- update target networks ----------------------- #
         self.soft_update(self.critic_local, self.critic_target, TAU)
         self.soft_update(self.actor_local, self.actor_target, TAU)
-
-        # ---------------------------- update noise ---------------------------- #
-        if self.epsilon - EPSILON_DECAY > EPSILON_MIN:
-            self.epsilon -= EPSILON_DECAY
-        else:
-            self.epsilon = EPSILON_MIN
 
     def soft_update(self, local_model, target_model, tau):
         """Soft update model parameters.
