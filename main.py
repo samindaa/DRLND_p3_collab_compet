@@ -38,7 +38,7 @@ state_size = states.shape[1]
 capacity = 1000000
 batch_size = 1024
 
-num_episode = 6000
+num_episode = 15000
 max_steps = 1000
 save_interval = 100
 
