@@ -6,14 +6,15 @@ import torch
 from unityagents import UnityEnvironment
 
 from MADDPG import MADDPG
+from memory import ReplayMemory
 
 reward_record = []
 
 np.random.seed(2)
 torch.manual_seed(2)
 
-# env = UnityEnvironment(file_name="/home/ubuntu/Tennis_Linux_NoVis/Tennis.x86_64")
-env = UnityEnvironment(file_name="/Users/saminda/Udacity/DRLND/Sim/Tennis/Tennis.app")
+env = UnityEnvironment(file_name="/home/ubuntu/Tennis_Linux_NoVis/Tennis.x86_64")
+# env = UnityEnvironment(file_name="/Users/saminda/Udacity/DRLND/Sim/Tennis/Tennis.app")
 
 # get the default brain
 brain_name = env.brain_names[0]
@@ -46,9 +47,11 @@ scores_list = []
 avg_list = []
 tot_list = []
 
+which_agent = 0
+pos_tuples = 0
+
 maddpg = MADDPG(num_agents, state_size, action_size, batch_size, capacity)
 
-FloatTensor = torch.cuda.FloatTensor if maddpg.use_cuda else torch.FloatTensor
 for i_episode in range(num_episode):
     maddpg.reset()
     env_info = env.reset(train_mode=True)[brain_name]
@@ -58,7 +61,7 @@ for i_episode in range(num_episode):
     rr = np.zeros((num_agents,))
     episode_done = False
     for t in range(max_steps):
-        obs = obs.type(FloatTensor)
+        obs = obs.type(maddpg.FloatTensor)
         action = maddpg.select_action(obs).data.cpu()
         env_info = env.step(action.numpy())[brain_name]
         next_obs = env_info.vector_observations
@@ -68,18 +71,23 @@ for i_episode in range(num_episode):
         if np.any(done):
             episode_done = True
 
-        reward = torch.FloatTensor(reward).type(FloatTensor)
-        done = torch.FloatTensor(done).type(FloatTensor)
+        reward = torch.FloatTensor(reward).type(maddpg.FloatTensor)
+        done = torch.FloatTensor(done).type(maddpg.FloatTensor)
         next_obs = torch.from_numpy(next_obs).float()
+
+        if reward.sum() > 0:
+            pos_tuples += 1
 
         total_reward += reward.sum()
         rr += reward.cpu().numpy()
         maddpg.memory.push(obs, action, next_obs, reward, done)
         obs = next_obs
 
-        #if maddpg.steps_done % 100 == 0:
-            #for _ in range(10):
-        c_loss, a_loss = maddpg.update_policy()
+        if maddpg.steps_done % 20 == 0:
+            agent = which_agent % maddpg.n_agents
+            which_agent += 1
+            for _ in range(10):
+                c_loss, a_loss = maddpg.update_policy(agent)
 
         if episode_done:
             break
@@ -95,7 +103,7 @@ for i_episode in range(num_episode):
     avg_list.append(avg)
     tot_list.append(total_reward)
 
-    print(f"\rEpisode: {i_episode:4d}  Average Score: {avg:.4f}", end="")
+    print(f"\rEpisode: {i_episode:4d}  Average Score: {avg:.4f} Pos tuples: {pos_tuples}", end="")
 
     if i_episode % save_interval == 0 and i_episode > 0:
         print()
@@ -108,6 +116,8 @@ for i_episode in range(num_episode):
             save_dict_list.append(save_dict)
         torch.save(save_dict_list, 'model-{}.bin'.format(maddpg.__class__.__name__))
 
+    if avg >= 0.5:
+        print('\nEnvironment solved in {:d} episodes!\tAverage Score: {:.2f}'.format(i_episode, avg))
 
 fig = plt.figure()
 ax = fig.add_subplot(111)
