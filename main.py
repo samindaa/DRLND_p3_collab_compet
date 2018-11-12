@@ -117,7 +117,8 @@ for i_episode in range(num_episode):
             avg_solved = avg
             print('\nSaving: {:d} Average Score: {:.2f}'.format(i_episode, avg))
             maddpg.save('model-solution')
-            break
+            if avg > 0.8:
+                break
 
     # if  i_episode % 100 and len(pos_examples) > 16:
     #     samples = pos_examples.sample(16)
