@@ -50,7 +50,7 @@ tot_list = []
 which_agent = 0
 avg_solved = 0
 
-pos_examples = ReplayMemory(capacity/2)
+pos_examples = ReplayMemory(int(capacity/2))
 
 maddpg = MADDPG(num_agents, state_size, action_size, batch_size, capacity)
 
@@ -77,12 +77,11 @@ for i_episode in range(num_episode):
         done = torch.FloatTensor(done).type(maddpg.FloatTensor)
         next_obs = torch.from_numpy(next_obs).float()
 
-        if reward.sum() > 0:
-            pos_examples.push(obs, action, next_obs, reward, done)
-
         total_reward += reward.sum()
         rr += reward.cpu().numpy()
         maddpg.memory.push(obs, action, next_obs, reward, done)
+        if reward.sum() > 0:
+            pos_examples.push(obs, action, next_obs, reward, done)
         obs = next_obs
 
         if maddpg.steps_done % 20 == 0:
