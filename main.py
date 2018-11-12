@@ -118,10 +118,10 @@ for i_episode in range(num_episode):
             print('\nSaving: {:d} Average Score: {:.2f}'.format(i_episode, avg))
             maddpg.save('model-solution')
 
-    if  i_episode % 100 and len(pos_examples) > 16:
-        samples = pos_examples.sample(16)
-        for sample in samples:
-            maddpg.memory.push(sample.states, sample.actions, sample.next_states, sample.rewards, sample.dones)
+    # if  i_episode % 100 and len(pos_examples) > 16:
+    #     samples = pos_examples.sample(16)
+    #     for sample in samples:
+    #         maddpg.memory.push(sample.states, sample.actions, sample.next_states, sample.rewards, sample.dones)
 
 
 fig = plt.figure()
