@@ -7,6 +7,7 @@ from unityagents import UnityEnvironment
 
 from MADDPG import MADDPG
 from memory import ReplayMemory
+from itertools import count
 
 reward_record = []
 
@@ -38,8 +39,7 @@ state_size = states.shape[1]
 capacity = 1000000
 batch_size = 1024
 
-num_episode = 15000
-max_steps = 1000
+num_episode = 5000
 save_interval = 100
 
 scores_deque = deque(maxlen=100)
@@ -50,7 +50,7 @@ tot_list = []
 which_agent = 0
 avg_solved = 0
 
-pos_examples = ReplayMemory(int(capacity/2))
+pos_examples = ReplayMemory(int(capacity / 2))
 
 maddpg = MADDPG(num_agents, state_size, action_size, batch_size, capacity)
 
@@ -62,7 +62,7 @@ for i_episode in range(num_episode):
     total_reward = 0.0
     rr = np.zeros((num_agents,))
     episode_done = False
-    for t in range(max_steps):
+    for t in count():
         obs = obs.type(maddpg.FloatTensor)
         action = maddpg.select_action(obs).data.cpu()
         env_info = env.step(action.numpy())[brain_name]
@@ -117,12 +117,12 @@ for i_episode in range(num_episode):
             avg_solved = avg
             print('\nSaving: {:d} Average Score: {:.2f}'.format(i_episode, avg))
             maddpg.save('model-solution')
+            break
 
     # if  i_episode % 100 and len(pos_examples) > 16:
     #     samples = pos_examples.sample(16)
     #     for sample in samples:
     #         maddpg.memory.push(sample.states, sample.actions, sample.next_states, sample.rewards, sample.dones)
-
 
 fig = plt.figure()
 ax = fig.add_subplot(111)
