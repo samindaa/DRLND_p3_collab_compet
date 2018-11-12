@@ -49,6 +49,7 @@ tot_list = []
 
 which_agent = 0
 pos_tuples = 0
+avg_solved = 0
 
 maddpg = MADDPG(num_agents, state_size, action_size, batch_size, capacity)
 
@@ -107,17 +108,16 @@ for i_episode in range(num_episode):
 
     if i_episode % save_interval == 0 and i_episode > 0:
         print()
-        save_dict_list = []
-        for i in range(num_agents):
-            save_dict = {'actor_params': maddpg.actors[i].state_dict(),
-                         'actor_optim_params': maddpg.actor_optimizer[i].state_dict(),
-                         'critic_params': maddpg.critics[i].state_dict(),
-                         'critic_optim_params': maddpg.critic_optimizer[i].state_dict()}
-            save_dict_list.append(save_dict)
-        torch.save(save_dict_list, 'model-{}.bin'.format(maddpg.__class__.__name__))
+        maddpg.save('model')
 
     if avg >= 0.5:
-        print('\nEnvironment solved in {:d} episodes!\tAverage Score: {:.2f}'.format(i_episode, avg))
+        if avg_solved == 0:
+            print('\nEnvironment solved in {:d} episodes!\tAverage Score: {:.2f}'.format(i_episode, avg))
+        if avg > avg_solved:
+            avg_solved = avg
+            print('\nSaving: {:d} Average Score: {:.2f}'.format(i_episode, avg))
+            maddpg.save('model-solution')
+
 
 fig = plt.figure()
 ax = fig.add_subplot(111)
