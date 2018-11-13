@@ -51,6 +51,6 @@ In order to train and test the agent, we need to install and setup the dependenc
 3. Activate the _drlnd_ environment.
 4.  _cd deep-reinforcement-learning/python_ and install the dependencies with the command _pip install ._ (please note  that the dot (__.__) is included. The _requirements.txt_ file is available in _deep-reinforcement-learning/python_).  
 5. git clone [https://github.com/samindaa/DRLND\_p3\_collab\_compet.git](https://github.com/samindaa/DRLND_p3_collab_compet.git)
-6. _cd DRLND\_p2\_continuous\_control_
+6. _cd DRLND\_p3\_collab\_compet_
 7. Download the [Tennis](https://github.com/Unity-Technologies/ml-agents/blob/master/docs/Learning-Environment-Examples.md#reacher) Unity environment. 
 8. Follow the instructions in the _Training_ and _Testing_ sections in this document to train and test the agent.  
